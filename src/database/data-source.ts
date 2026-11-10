@@ -5,6 +5,7 @@ import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { User } from '../users/entities/user.entity.js';
 import { Category } from '../categories/entities/category.entity.js';
+import { Cart } from '../cart/entities/cart.entity.js';
 
 export const AppDataSource = new DataSource({
     type: 'postgres',
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
     password: process.env.DB_PASSWORD,
     database: process.env.DB_DATABASE,
 
-    entities: [User,Category],
+    entities: [User,Category,Cart],
 
     migrations: ['src/database/migrations/*.ts'],
 
