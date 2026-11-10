@@ -19,7 +19,7 @@ export class CartService {
 
   async getOrCreateCart(
     customerId: string,
-  ): Promise<Cart> {
+  ): Promise<Cart & { items: CartItem[] }> {
     let cart = await this.cartRepository.findOne({
       where: {
         customer: { id: customerId },
@@ -34,7 +34,16 @@ export class CartService {
       cart = await this.cartRepository.save(cart);
     }
 
-    return cart;
+    const items = await this.cartItemRepository.find({
+      where: {
+        cart: { id: cart.id },
+      },
+      order: {
+        createdAt: 'ASC',
+      },
+    });
+
+    return Object.assign(cart, { items });
   }
 
   async addToCart(
@@ -65,5 +74,6 @@ export class CartService {
     return this.cartItemRepository.save(cartItem);
   }
 }
+
 
 
