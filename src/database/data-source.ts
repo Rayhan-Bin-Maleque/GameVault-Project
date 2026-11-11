@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { DataSource } from 'typeorm';
 import { User } from '../users/entities/user.entity.js';
 import { Category } from '../categories/entities/category.entity.js';
+import { Games } from '../games/entities/game.entity.js';
 import { Cart } from '../cart/entities/cart.entity.js';
 import { CartItem } from '../cart/entities/cart-item.entity.js';
 import { Order } from '../orders/entities/order.entity.js';
@@ -18,18 +19,11 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
-  entities: [
-    User,
-    Category,
-    Cart,
-    CartItem,
-    Order,
-    OrderItem,
-    Payment,
-  ],
+
+  entities: [User, Category, Games, Cart, CartItem, Order, OrderItem, Payment],
+
   migrations: ['src/database/migrations/*.ts'],
+
   synchronize: false,
   logging: true,
 });
-
-
