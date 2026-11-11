@@ -5,6 +5,11 @@ import { DataSource } from 'typeorm';
 import { User } from '../users/entities/user.entity.js';
 import { Category } from '../categories/entities/category.entity.js';
 import { Games } from '../games/entities/game.entity.js';
+import { Cart } from '../cart/entities/cart.entity.js';
+import { CartItem } from '../cart/entities/cart-item.entity.js';
+import { Order } from '../orders/entities/order.entity.js';
+import { OrderItem } from '../orders/entities/order-item.entity.js';
+import { Payment } from '../payments/entities/payment.entity.js';
 
 export const AppDataSource = new DataSource({
   type: 'postgres',
@@ -15,7 +20,7 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  entities: [User, Category, Games],
+  entities: [User, Category, Games, Cart, CartItem, Order, OrderItem, Payment],
 
   migrations: ['src/database/migrations/*.ts'],
 
