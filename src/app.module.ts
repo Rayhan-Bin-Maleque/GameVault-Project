@@ -1,23 +1,24 @@
-
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+
 import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { AdminModule } from './admin/admin.module.js';
 import { CartModule } from './cart/cart.module.js';
-
+import { OrdersModule } from './orders/orders.module.js';
+import { PaymentsModule } from './payments/payments.module.js';
+import { ReviewsModule } from './reviews/reviews.module.js';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
-      
     }),
 
     TypeOrmModule.forRootAsync({
@@ -31,24 +32,23 @@ import { CartModule } from './cart/cart.module.js';
         username: configService.get<string>('DB_USERNAME'),
         password: configService.get<string>('DB_PASSWORD'),
         database: configService.get<string>('DB_DATABASE'),
-
         autoLoadEntities: true,
         synchronize: false,
       }),
     }),
 
     UsersModule,
-
     AuthModule,
-
     CategoriesModule,
-
     AdminModule,
-
     CartModule,
+    OrdersModule,
+    PaymentsModule,
+    ReviewsModule,
   ],
 
   controllers: [AppController],
   providers: [AppService],
 })
 export class AppModule {}
+
