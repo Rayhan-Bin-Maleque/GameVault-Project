@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module.js';
 import { AuthModule } from './auth/auth.module.js';
 import { CategoriesModule } from './categories/categories.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { GamesModule } from './games/games.module.js';
 
 
 @Module({
@@ -43,6 +44,8 @@ import { AdminModule } from './admin/admin.module.js';
     CategoriesModule,
 
     AdminModule,
+
+    GamesModule,
   ],
 
   controllers: [AppController],
