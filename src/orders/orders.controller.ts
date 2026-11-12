@@ -2,6 +2,7 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
   Param,
   ParseUUIDPipe,
@@ -29,11 +30,22 @@ export class OrdersController {
     private readonly ordersService: OrdersService,
   ) {}
 
+
   @Get('checkout-preview')
   async getCheckoutPreview(
     @Req() req: AuthenticatedRequest,
   ) {
     return this.ordersService.getCheckoutPreview(
+      req.user.id,
+    );
+  }
+
+
+  @Post('checkout')
+  async checkout(
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.ordersService.checkout(
       req.user.id,
     );
   }
@@ -71,5 +83,4 @@ export class OrdersController {
     );
   }
 }
-
 

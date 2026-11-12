@@ -1,3 +1,4 @@
+
 import {
   Injectable,
   NotFoundException,
@@ -5,6 +6,7 @@ import {
   ConflictException,
 } from '@nestjs/common';
 
+import { randomUUID } from 'node:crypto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 
@@ -72,7 +74,6 @@ export class PaymentsService {
           );
         }
 
-        // Validate order amount
         const amount = Number(order.totalAmount);
 
         if (
@@ -97,7 +98,6 @@ export class PaymentsService {
           );
         }
 
-        // Create pending simulated payment
         const payment = paymentRepository.create({
           orderId: order.id,
           amount: order.totalAmount,
@@ -111,6 +111,119 @@ export class PaymentsService {
     );
   }
 
+  // Complete a simulated payment
+  async completePayment(
+    customerId: string,
+    paymentId: string,
+  ) {
+    return this.paymentRepository.manager.transaction(
+      async (manager) => {
+        const orderRepository =
+          manager.getRepository(Order);
+
+        const paymentRepository =
+          manager.getRepository(Payment);
+
+        const existingPayment =
+          await paymentRepository.findOne({
+            where: {
+              id: paymentId,
+            },
+          });
+
+        if (!existingPayment) {
+          throw new NotFoundException(
+            'Payment not found',
+          );
+        }
+
+        const order = await orderRepository
+          .createQueryBuilder('o')
+          .innerJoin('o.customer', 'customer')
+          .where('o.id = :orderId', {
+            orderId: existingPayment.orderId,
+          })
+          .andWhere('customer.id = :customerId', {
+            customerId,
+          })
+          .setLock(
+            'pessimistic_write',
+            undefined,
+            ['o'],
+          )
+          .getOne();
+
+        if (!order) {
+          throw new NotFoundException(
+            'Payment not found',
+          );
+        }
+
+        const payment = await paymentRepository
+          .createQueryBuilder('payment')
+          .where('payment.id = :paymentId', {
+            paymentId,
+          })
+          .andWhere('payment.orderId = :orderId', {
+            orderId: order.id,
+          })
+          .setLock('pessimistic_write')
+          .getOne();
+
+        if (!payment) {
+          throw new NotFoundException(
+            'Payment not found',
+          );
+        }
+
+        if (payment.status !== PaymentStatus.PENDING) {
+          throw new ConflictException(
+            'Payment is not pending',
+          );
+        }
+
+        if (order.status !== OrderStatus.PENDING) {
+          throw new BadRequestException(
+            'Order is not pending',
+          );
+        }
+
+        if (payment.method !== PaymentMethod.SIMULATED) {
+          throw new BadRequestException(
+            'Unsupported payment method',
+          );
+        }
+
+        if (payment.amount !== order.totalAmount) {
+          throw new BadRequestException(
+            'Payment amount does not match order total',
+          );
+        }
+
+        payment.status = PaymentStatus.COMPLETED;
+
+        payment.transactionReference =
+          `SIM-${randomUUID()}`;
+
+        order.status = OrderStatus.CONFIRMED;
+
+        await orderRepository.save(order);
+        const savedPayment =
+          await paymentRepository.save(payment);
+
+        return {
+          message: 'Simulated payment completed successfully',
+          payment: savedPayment,
+          order: {
+            id: order.id,
+            status: order.status,
+          },
+        };
+      },
+    );
+  }
+
+  // Get customer's payments
   async getMyPayments(
     customerId: string,
   ): Promise<Payment[]> {
@@ -125,6 +238,7 @@ export class PaymentsService {
       .getMany();
   }
 
+  // Get a single payment
   async getMyPaymentById(
     customerId: string,
     paymentId: string,
