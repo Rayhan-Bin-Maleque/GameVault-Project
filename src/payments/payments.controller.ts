@@ -48,6 +48,18 @@ export class PaymentsController {
     );
   }
 
+  @Post(':paymentId/complete')
+  async completePayment(
+    @Req() req: AuthenticatedRequest,
+    @Param('paymentId', ParseUUIDPipe)
+    paymentId: string,
+  ) {
+    return this.paymentsService.completePayment(
+      req.user.id,
+      paymentId,
+    );
+  }
+
   @Get()
   async getMyPayments(
     @Req() req: AuthenticatedRequest,
