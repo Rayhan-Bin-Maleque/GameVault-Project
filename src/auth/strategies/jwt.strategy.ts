@@ -1,14 +1,21 @@
 
-import { Injectable } from '@nestjs/common';
+import {
+    Injectable,
+    UnauthorizedException,
+} from '@nestjs/common';
+
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
+
+import { UsersService } from '../../users/users.service.js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
 
     constructor(
-        private readonly configService: ConfigService
+        private readonly configService: ConfigService,
+        private readonly usersService: UsersService,
     ) {
         super({
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -17,11 +24,30 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         });
     }
 
-    async validate(payload: any) {
+    async validate(payload: { id: string }) {
+
+  
+        const user = await this.usersService.findOne(payload.id);
+
+  
+        if (!user) {
+            throw new UnauthorizedException(
+                'User account not found',
+            );
+        }
+
+
+        if (!user.isActive) {
+            throw new UnauthorizedException(
+                'Your account has been deactivated',
+            );
+        }
+
+      
         return {
-            id: payload.id,
-            email: payload.email,
-            role: payload.role,
+            id: user.id,
+            email: user.email,
+            role: user.role,
         };
     }
 }
