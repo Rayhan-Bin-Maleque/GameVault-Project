@@ -1,14 +1,7 @@
 
-import {
-  Controller,
-  Get,
-  UseGuards,
-  Param,
-  ParseUUIDPipe,
-  Patch,
-  Body,
-  Req,
-} from '@nestjs/common';
+import {Controller,Get,UseGuards,Param,ParseUUIDPipe,Patch,Body,} from '@nestjs/common';
+
+import {ApiTags,ApiBearerAuth,ApiOperation,ApiResponse,ApiParam,} from '@nestjs/swagger';
 
 import { AdminService } from './admin.service.js';
 
@@ -20,115 +13,112 @@ import { UserRole } from '../users/entities/user.entity.js';
 
 import { UpdateStaffDto } from './dto/update-staff.dto.js';
 import { UpdateStaffStatusDto } from './dto/update-staff-status.dto.js';
+ 
 
-import { SupportService } from '../support/support.service.js';
-import { AssignTicketDto } from '../support/dto/assign-ticket.dto.js';
-
-
-interface AuthenticatedAdminRequest {
-  user: {
-    id: string;
-    email: string;
-    role: UserRole;
-  };
-}
-
+@ApiTags('Admin')
+@ApiBearerAuth('JWT-auth')
 @Controller('admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Roles(UserRole.ADMIN)
 export class AdminController {
 
-  constructor(
-    private readonly adminService: AdminService,
+    constructor(
+        private readonly adminService: AdminService,
+    ) {}
 
-    private readonly supportService: SupportService,
-  ) {}
+    
 
+    @Get('dashboard')
+    @ApiOperation({
+        summary: 'Get admin dashboard statistics',
+        description: 'Returns overview statistics for the GameVault administration dashboard.',
+    })
+    @ApiResponse({ status: 200, description: 'Dashboard statistics retrieved successfully.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
+    @ApiResponse({ status: 403, description: 'Forbidden - Admin access required.' })
+    async getDashboardStats() {
+        return await this.adminService.getDashboardStats();
+    }
 
+    
 
-  @Get('dashboard')
-  async getDashboardStats() {
-    return await this.adminService.getDashboardStats();
-  }
+    @Get('staff')
+    @ApiOperation({
+        summary: 'Get all staff members',
+        description: 'Returns the staff accounts managed by the administrator.',
+    })
+    @ApiResponse({ status: 200, description: 'Staff list retrieved successfully.' })
+    @ApiResponse({ status: 401, description: 'Unauthorized.' })
+    @ApiResponse({ status: 403, description: 'Admin access required.' })
+    async getAllStaff() {
+        return await this.adminService.getAllStaff();
+    }
 
+    
 
+    @Get('staff/:id')
+    @ApiOperation({
+        summary: 'Get a staff member by ID',
+        description: 'Returns details of a specific staff account.',
+    })
+    @ApiParam({
+        name: 'id',
+        description: 'UUID of the staff member',
+        type: String,
+    })
+    @ApiResponse({ status: 200, description: 'Staff member retrieved successfully.' })
+    @ApiResponse({ status: 400, description: 'Invalid UUID.' })
+    @ApiResponse({ status: 404, description: 'Staff member not found.' })
+    async getStaffById(
+        @Param('id', new ParseUUIDPipe()) id: string,
+    ) {
+        return await this.adminService.getStaffById(id);
+    }
 
-  @Get('staff')
-  async getAllStaff() {
-    return await this.adminService.getAllStaff();
-  }
+    
 
+    @Patch('staff/:id')
+    @ApiOperation({
+        summary: 'Update staff details',
+        description: 'Allows an administrator to update an existing staff member.',
+    })
+    @ApiParam({
+        name: 'id',
+        description: 'UUID of the staff member',
+        type: String,
+    })
+    @ApiResponse({ status: 200, description: 'Staff updated successfully.' })
+    @ApiResponse({ status: 400, description: 'Invalid UUID or request body.' })
+    @ApiResponse({ status: 404, description: 'Staff member not found.' })
+    async updateStaff(
+        @Param('id', new ParseUUIDPipe()) id: string,
+        @Body() staffData: UpdateStaffDto,
+    ) {
+        return this.adminService.updateStaff(id, staffData);
+    }
 
+    
 
-  @Get('staff/:id')
-  async getStaffById(
-    @Param('id', ParseUUIDPipe) id: string,
-  ) {
-    return await this.adminService.getStaffById(id);
-  }
-
-
-
-  @Patch('staff/:id')
-  async updateStaff(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() staffData: UpdateStaffDto,
-  ) {
-    return this.adminService.updateStaff(
-      id,
-      staffData,
-    );
-  }
-
-
-  @Patch('staff/:id/status')
-  async updateStaffStatus(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() statusData: UpdateStaffStatusDto,
-  ) {
-    return this.adminService.updateStaffStatus(
-      id,
-      statusData.isActive,
-    );
-  }
-
-
-
-
-  @Get('support/tickets')
-  async getAllSupportTickets(
-    @Req() req: AuthenticatedAdminRequest,
-  ) {
-    return await this.supportService.getAllTickets(
-      req.user.id,
-    );
-  }
-
-
-  @Patch('support/tickets/:id/assign')
-  async assignSupportTicket(
-    @Req() req: AuthenticatedAdminRequest,
-
-    @Param('id', ParseUUIDPipe)
-    ticketId: string,
-
-    @Body()
-    assignTicketDto: AssignTicketDto,
-  ) {
-    return await this.supportService.assignTicket(
-      req.user.id,
-      ticketId,
-      assignTicketDto,
-    );
-  }
-
-
-  @Get('support/dashboard')
-  async getSupportDashboard(
-    @Req() req: AuthenticatedAdminRequest,
-  ) {
-    return await this.supportService.getAdminDashboard(
-      req.user.id,
-    );
-  }
+    @Patch('staff/:id/status')
+    @ApiOperation({
+        summary: 'Update staff account status',
+        description: 'Allows an administrator to activate or deactivate a staff account.',
+    })
+    @ApiParam({
+        name: 'id',
+        description: 'UUID of the staff member',
+        type: String,
+    })
+    @ApiResponse({ status: 200, description: 'Staff status updated successfully.' })
+    @ApiResponse({ status: 400, description: 'Invalid UUID or request body.' })
+    @ApiResponse({ status: 404, description: 'Staff member not found.' })
+    async updateStaffStatus(
+        @Param('id', ParseUUIDPipe) id: string,
+        @Body() statusData: UpdateStaffStatusDto,
+    ) {
+        return this.adminService.updateStaffStatus(
+            id,
+            statusData.isActive,
+        );
+    }
 }
