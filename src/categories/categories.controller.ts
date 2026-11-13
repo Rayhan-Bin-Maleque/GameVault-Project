@@ -106,6 +106,7 @@ export class CategoriesController {
     description: 'Category ID',
     type: String,
   })
+  
   @ApiResponse({ status: 200, description: 'Category deleted successfully.' })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
   @ApiResponse({ status: 403, description: 'Admin access required.' })
