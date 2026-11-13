@@ -11,6 +11,11 @@ import { Order } from '../orders/entities/order.entity.js';
 import { OrderItem } from '../orders/entities/order-item.entity.js';
 import { Payment } from '../payments/entities/payment.entity.js';
 
+import { Review } from '../reviews/entities/review.entity.js';
+import { SupportTicket } from '../support/entities/support-ticket.entity.js';
+import { SupportMessage } from '../support/entities/support-message.entity.js';
+
+
 export const AppDataSource = new DataSource({
   type: 'postgres',
 
@@ -20,10 +25,24 @@ export const AppDataSource = new DataSource({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_DATABASE,
 
-  entities: [User, Category, Games, Cart, CartItem, Order, OrderItem, Payment],
+  entities: [
+  User,
+  Category,
+  Games,
+  Cart,
+  CartItem,
+  Order,
+  OrderItem,
+  Payment,
+  Review,
+  SupportTicket,
+  SupportMessage,
+],
 
   migrations: ['src/database/migrations/*.ts'],
 
   synchronize: false,
   logging: true,
+
+  
 });

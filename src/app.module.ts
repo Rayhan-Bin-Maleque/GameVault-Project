@@ -14,6 +14,8 @@ import { CartModule } from './cart/cart.module.js';
 import { OrdersModule } from './orders/orders.module.js';
 import { PaymentsModule } from './payments/payments.module.js';
 import { ReviewsModule } from './reviews/reviews.module.js';
+import { SupportModule } from './support/support.module.js';
+
 
 @Module({
   imports: [
@@ -48,6 +50,7 @@ import { ReviewsModule } from './reviews/reviews.module.js';
     OrdersModule,
     PaymentsModule,
     ReviewsModule,
+    SupportModule,
   ],
 
   controllers: [AppController],
