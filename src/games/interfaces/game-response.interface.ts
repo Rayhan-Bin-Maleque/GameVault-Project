@@ -9,4 +9,7 @@ export interface GameResponse {
   createdAt: Date;
   updatedAt: Date;
   categories: string[];
+  publisher: {
+    publisherName: string;
+  };
 }
