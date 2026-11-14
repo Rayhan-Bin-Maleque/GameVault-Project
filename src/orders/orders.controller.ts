@@ -39,6 +39,7 @@ export class OrdersController {
     private readonly ordersService: OrdersService,
   ) {}
 
+  @ApiBearerAuth('JWT-auth')
   @Get('checkout-preview')
   @ApiOperation({
     summary: 'Preview customer checkout',
