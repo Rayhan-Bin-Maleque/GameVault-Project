@@ -6,50 +6,113 @@ import {
     UseGuards,
 } from '@nestjs/common';
 
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiBearerAuth,
+    ApiBody,
+} from '@nestjs/swagger';
+
 import { AuthService } from './auth.service.js';
+
 import { RegisterDto } from './dto/register.dto.js';
 import { LoginDto } from './dto/login.dto.js';
 
 import { CreateStaffUserDto } from '../users/dto/create-staff-user.dto.js';
+
 import { UserRole } from '../users/entities/user.entity.js';
 
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { RolesGuard } from './guards/roles.guard.js';
 import { Roles } from './decorators/roles.decorator.js';
 
-import {ApiTags,ApiOperation,ApiResponse,ApiBearerAuth,} from '@nestjs/swagger';
-
-
 @ApiTags('Authentication')
 @Controller('auth')
 export class AuthController {
 
     constructor(
-        private readonly authService: AuthService
+        private readonly authService: AuthService,
     ) {}
 
+
+    // =====================================
+    // CUSTOMER REGISTRATION
+    // =====================================
+
     @Post('register')
-     @ApiOperation({
+    @ApiOperation({
         summary: 'Register a new customer',
-        description: 'Creates a new customer account in GameVault.',
+        description:
+            'Creates a new customer account in GameVault. Newly registered users receive the CUSTOMER role by default.',
     })
-    @ApiResponse({ status: 201, description: 'Customer registered successfully.' })
-    @ApiResponse({ status: 400, description: 'Invalid registration information.' })
-    @ApiResponse({ status: 409, description: 'Email already exists.' })
-    async register(@Body() user: RegisterDto): Promise<string> {
+    @ApiBody({
+        type: RegisterDto,
+        description: 'Customer registration information.',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Customer registered successfully.',
+        schema: {
+            type: 'string',
+            example: 'User registered successfully',
+        },
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid registration information.',
+    })
+    @ApiResponse({
+        status: 409,
+        description: 'Email address already exists.',
+    })
+    async register(
+        @Body() user: RegisterDto,
+    ): Promise<string> {
         return this.authService.registration(user);
     }
+
+
+    // =====================================
+    // USER LOGIN
+    // =====================================
 
     @Post('login')
     @ApiOperation({
         summary: 'Login to GameVault',
-        description: 'Authenticates a user and returns a JWT access token.',
+        description:
+            'Authenticates an active user using email and password. Returns a JWT access token that must be used for protected API endpoints.',
     })
-    @ApiResponse({ status: 201, description: 'Login successful. Returns JWT token.' })
-    @ApiResponse({ status: 401, description: 'Invalid email or password.' })
-    async login(@Body() user: LoginDto): Promise<string> {
+    @ApiBody({
+        type: LoginDto,
+        description: 'User login credentials.',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Login successful. Returns a JWT access token as a string.',
+        schema: {
+            type: 'string',
+            example: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.example.signature',
+        },
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid request or unexpected authentication error.',
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Invalid email, incorrect password or inactive account.',
+    })
+    async login(
+        @Body() user: LoginDto,
+    ): Promise<string> {
         return this.authService.login(user);
     }
+
+
+    // =====================================
+    // ADMIN CREATE STAFF ACCOUNT
+    // =====================================
 
     @UseGuards(JwtAuthGuard, RolesGuard)
     @Roles(UserRole.ADMIN)
@@ -57,14 +120,75 @@ export class AuthController {
     @ApiBearerAuth('JWT-auth')
     @ApiOperation({
         summary: 'Create a staff account',
-        description: 'Allows an authenticated administrator to create Publisher or Support accounts.',
+        description:
+            'Allows an authenticated administrator to create Publisher or Support staff accounts. ADMIN and CUSTOMER roles cannot be assigned through this endpoint.',
     })
-    @ApiResponse({ status: 201, description: 'Staff account created successfully.' })
-    @ApiResponse({ status: 400, description: 'Invalid staff information.' })
-    @ApiResponse({ status: 401, description: 'Unauthorized - JWT token is missing or invalid.' })
-    @ApiResponse({ status: 403, description: 'Forbidden - Admin access required.' })
-    @ApiResponse({ status: 409, description: 'Email already exists.' })
-    async createStaff(@Body() user: CreateStaffUserDto) {
+    @ApiBody({
+        type: CreateStaffUserDto,
+        description: 'Staff account creation information.',
+    })
+    @ApiResponse({
+        status: 201,
+        description: 'Staff account created successfully. Password is excluded from the response.',
+        schema: {
+            type: 'object',
+            properties: {
+                id: {
+                    type: 'string',
+                    format: 'uuid',
+                    example: '550e8400-e29b-41d4-a716-446655440000',
+                },
+                fullName: {
+                    type: 'string',
+                    example: 'GameVault Support',
+                },
+                email: {
+                    type: 'string',
+                    format: 'email',
+                    example: 'support@gmail.com',
+                },
+                role: {
+                    type: 'string',
+                    enum: [
+                        UserRole.PUBLISHER,
+                        UserRole.SUPPORT,
+                    ],
+                    example: UserRole.SUPPORT,
+                },
+                isActive: {
+                    type: 'boolean',
+                    example: true,
+                },
+                createdAt: {
+                    type: 'string',
+                    format: 'date-time',
+                },
+                updatedAt: {
+                    type: 'string',
+                    format: 'date-time',
+                },
+            },
+        },
+    })
+    @ApiResponse({
+        status: 400,
+        description: 'Invalid staff information.',
+    })
+    @ApiResponse({
+        status: 401,
+        description: 'Unauthorized. JWT token is missing, invalid or expired.',
+    })
+    @ApiResponse({
+        status: 403,
+        description: 'Forbidden. Only administrators can create staff accounts.',
+    })
+    @ApiResponse({
+        status: 409,
+        description: 'Email address already exists.',
+    })
+    async createStaff(
+        @Body() user: CreateStaffUserDto,
+    ) {
         return this.authService.createStaffUser(user);
     }
 }
