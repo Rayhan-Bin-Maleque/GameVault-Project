@@ -10,11 +10,20 @@ import { Reflector } from '@nestjs/core';
 
 import { UserRole } from '../../users/entities/user.entity.js';
 
+interface AuthenticatedRequest {
+    user?: {
+        id?: string;
+        email?: string;
+        role?: UserRole;
+    };
+    url: string;
+}
+
 @Injectable()
 export class RolesGuard implements CanActivate {
 
     constructor(
-        private readonly reflector: Reflector
+        private readonly reflector: Reflector,
     ) {}
 
     canActivate(context: ExecutionContext): boolean {
@@ -31,11 +40,24 @@ export class RolesGuard implements CanActivate {
             return true;
         }
 
-        const user = context.switchToHttp().getRequest().user;
+        const request = context.switchToHttp().getRequest<AuthenticatedRequest>();
 
-        if (!user || !requiredRoles.includes(user.role)) {
+        const user = request.user;
+
+        console.log('=== ROLE DEBUG ==');
+
+        console.log({
+            userId: user?.id,
+            userRole: user?.role,
+            requiredRoles,
+            requestUrl: request.url,
+        });
+
+        console.log('=============');
+
+        if (!user || !requiredRoles.includes(user.role as UserRole)) {
             throw new ForbiddenException(
-                'You do not have permission to access this resource'
+                'You do not have permission to access this resource',
             );
         }
 
