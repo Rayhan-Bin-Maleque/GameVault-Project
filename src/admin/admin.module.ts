@@ -8,13 +8,20 @@ import { AdminService } from './admin.service.js';
 import { User } from '../users/entities/user.entity.js';
 import { Category } from '../categories/entities/category.entity.js';
 
+import { SupportModule } from '../support/support.module.js';
+
 @Module({
-    imports: [
-        TypeOrmModule.forFeature([User, Category]),
-    ],
+  imports: [
+    TypeOrmModule.forFeature([User, Category]),
+    SupportModule,
+  ],
 
-    controllers: [AdminController],
+  controllers: [
+    AdminController,
+  ],
 
-    providers: [AdminService],
+  providers: [
+    AdminService,
+  ],
 })
 export class AdminModule {}
