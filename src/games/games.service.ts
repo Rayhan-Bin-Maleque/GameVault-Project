@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   ConflictException,
   HttpException,
   Injectable,
@@ -14,7 +15,6 @@ import { User } from '../users/entities/user.entity.js';
 import { GameResponse } from './interfaces/game-response.interface.js';
 import { PartialUpdateGameDto } from './dto/partial-update-game.dto.js';
 import { PublicGameReponse } from './interfaces/public-game-response.interface.js';
-import { resourceLimits } from 'worker_threads';
 
 @Injectable()
 export class GamesService {
@@ -56,7 +56,7 @@ export class GamesService {
     return {
       id: game.id,
       title: game.title,
-      description: game.title,
+      description: game.description,
       price: game.price,
       imageUrl: game.imageUrl,
       releaseDate: game.releaseDate,
@@ -109,7 +109,7 @@ export class GamesService {
         });
 
         if (categories.length !== uniqueCategoryIds.length) {
-          throw new NotFoundException('One or more categories were not found');
+          throw new BadRequestException('One or more category IDs are invalid');
         }
       }
 
@@ -132,10 +132,7 @@ export class GamesService {
         game: result,
       };
     } catch (error: unknown) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof ConflictException
-      ) {
+      if (error instanceof HttpException) {
         throw error;
       }
 
@@ -150,7 +147,7 @@ export class GamesService {
         }
 
         if (driverError.code === '23503') {
-          throw new NotFoundException(
+          throw new BadRequestException(
             'The specified publisher or category does not exist',
           );
         }
@@ -387,13 +384,13 @@ export class GamesService {
         throw new NotFoundException(`Game with id ${id} not found`);
       }
 
-      const { categoryIds, ...gameData } = updateGameDto;
+      const { categoryIds, releaseDate, ...gameData } = updateGameDto;
 
-      Object.assign(game, gameData);
-
-      if (gameData.releaseDate) {
-        game.releaseDate = new Date(gameData.releaseDate);
-      }
+      this.gamesRepository.merge(
+        game,
+        gameData,
+        releaseDate != undefined ? { releaseDate: new Date(releaseDate) } : {},
+      );
 
       if (categoryIds !== undefined) {
         const uniqueCategoryIds = [...new Set(categoryIds)];
@@ -407,15 +404,15 @@ export class GamesService {
           : [];
 
         if (categories.length != uniqueCategoryIds.length) {
-          throw new NotFoundException('One or more categories were not found');
+          throw new BadRequestException('One or more category IDs are invalid');
         }
 
         game.categories = categories;
       }
 
-      const updatedGame = await this.gamesRepository.save(game);
-
       const publisherName = await this.getPublisherName(publisherId);
+
+      const updatedGame = await this.gamesRepository.save(game);
 
       const result = this.toGameResponse(updatedGame, publisherName);
       return {
@@ -423,10 +420,7 @@ export class GamesService {
         game: result,
       };
     } catch (error: unknown) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof ConflictException
-      ) {
+      if (error instanceof HttpException) {
         throw error;
       }
 
@@ -439,8 +433,8 @@ export class GamesService {
           throw new ConflictException('A game with this title already exists');
         }
         if (driverError.code === '23503') {
-          throw new ConflictException(
-            'A specified publisher or category does not exist',
+          throw new BadRequestException(
+            'Invalid publisher or category reference',
           );
         }
       }
@@ -450,35 +444,77 @@ export class GamesService {
     }
   }
 
-  async deleteGame(
+  async updateGameStatus(
     id: string,
     publisherId: string,
-  ): Promise<{ message: string }> {
+    isActive: boolean,
+  ): Promise<{ message: string; game: GameResponse }> {
     try {
       const game = await this.gamesRepository.findOne({
         where: {
           id,
           publisher: { id: publisherId },
         },
+        relations: {
+          categories: true,
+        },
       });
 
       if (!game) {
-        throw new NotFoundException(`Game with id ${id} not found`);
+        throw new NotFoundException(`Game with id ${id} was not found`);
       }
 
-      await this.gamesRepository.remove(game);
+      const publisherName = await this.getPublisherName(publisherId);
+      game.isActive = isActive;
+
+      const updatedStatus = await this.gamesRepository.save(game);
 
       return {
-        message: 'Game permanently deleted successfully',
+        message: isActive
+          ? 'Game activated successfully'
+          : 'Game deactivated successfully',
+        game: this.toGameResponse(updatedStatus, publisherName),
       };
     } catch (error: unknown) {
-      if (error instanceof NotFoundException) {
+      if (error instanceof HttpException) {
         throw error;
       }
 
       throw new InternalServerErrorException(
-        'An unexpected error occured while permanently deleting the game',
+        'An unexpected error occured while updating game status',
       );
     }
   }
+
+  // async deleteGame(
+  //   id: string,
+  //   publisherId: string,
+  // ): Promise<{ message: string }> {
+  //   try {
+  //     const game = await this.gamesRepository.findOne({
+  //       where: {
+  //         id,
+  //         publisher: { id: publisherId },
+  //       },
+  //     });
+
+  //     if (!game) {
+  //       throw new NotFoundException(`Game with id ${id} not found`);
+  //     }
+
+  //     await this.gamesRepository.remove(game);
+
+  //     return {
+  //       message: 'Game permanently deleted successfully',
+  //     };
+  //   } catch (error: unknown) {
+  //     if (error instanceof HttpException) {
+  //       throw error;
+  //     }
+
+  //     throw new InternalServerErrorException(
+  //       'An unexpected error occured while permanently deleting the game',
+  //     );
+  //   }
+  // }
 }

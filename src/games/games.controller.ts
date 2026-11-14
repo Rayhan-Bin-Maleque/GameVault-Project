@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Req,
@@ -18,6 +19,7 @@ import { UserRole } from '../users/entities/user.entity.js';
 import { PartialUpdateGameDto } from './dto/partial-update-game.dto.js';
 import { GameResponse } from './interfaces/game-response.interface.js';
 import { PublicGameReponse } from './interfaces/public-game-response.interface.js';
+import { UpdateGameStatusDto } from './dto/update-game-status.dto.js';
 
 @Controller('games')
 export class GamesController {
@@ -43,7 +45,7 @@ export class GamesController {
 
   @Get('public/findById/:id')
   async findPublicGamesById(
-    id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
   ): Promise<{ message: string; game: PublicGameReponse }> {
     return this.gamesService.findPublicGameById(id);
   }
@@ -61,7 +63,7 @@ export class GamesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PUBLISHER)
   async findOneGame(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Req() req: { user: { id: string } },
   ): Promise<{ message: string; game: GameResponse }> {
     return this.gamesService.findOneGame(id, req.user.id);
@@ -71,20 +73,36 @@ export class GamesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PUBLISHER)
   async updateGame(
-    @Param('id') id: string,
+    @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
     @Body() updateGameDto: PartialUpdateGameDto,
     @Req() req: { user: { id: string } },
   ): Promise<{ message: string; game: GameResponse }> {
     return this.gamesService.updateGame(id, updateGameDto, req.user.id);
   }
 
-  @Delete('deleteGame/:id')
+  @Patch(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.PUBLISHER)
-  async deleteGame(
-    @Param('id') id: string,
+  async updateGameStatus(
+    @Param('id', new ParseUUIDPipe({ version: '4' }))
+    id: string,
+    @Body() updateStatus: UpdateGameStatusDto,
     @Req() req: { user: { id: string } },
-  ): Promise<{ message: string }> {
-    return this.gamesService.deleteGame(id, req.user.id);
+  ): Promise<{ message: string; game: GameResponse }> {
+    return this.gamesService.updateGameStatus(
+      id,
+      req.user.id,
+      updateStatus.isActive,
+    );
   }
+
+  // @Delete('deleteGame/:id')
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(UserRole.PUBLISHER)
+  // async deleteGame(
+  //   @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
+  //   @Req() req: { user: { id: string } },
+  // ): Promise<{ message: string }> {
+  //   return this.gamesService.deleteGame(id, req.user.id);
+  // }
 }
