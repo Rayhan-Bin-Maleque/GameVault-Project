@@ -11,6 +11,7 @@ import {
   IsString,
   IsUrl,
   IsUUID,
+  Max,
   MaxLength,
 } from 'class-validator';
 
@@ -27,19 +28,20 @@ export class CreateGameDto {
 
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
+  @Max(99999999.99)
   @Type(() => Number)
   price: number;
 
   @IsOptional()
-  @IsUrl({ protocols: ['http', 'https'] })
+  @IsUrl({
+    require_protocol: true,
+    protocols: ['http', 'https'],
+  })
+  @MaxLength(500)
   imageUrl: string;
 
-  @IsDateString()
+  @IsDateString({ strict: true })
   releaseDate: Date;
-
-  @IsOptional()
-  @IsBoolean()
-  isActive: boolean;
 
   @IsOptional()
   @IsArray()
