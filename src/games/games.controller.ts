@@ -17,14 +17,15 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UserRole } from '../users/entities/user.entity.js';
 import { PartialUpdateGameDto } from './dto/partial-update-game.dto.js';
 import { GameResponse } from './interfaces/game-response.interface.js';
+import { PublicGameReponse } from './interfaces/public-game-response.interface.js';
 
 @Controller('games')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.PUBLISHER)
 export class GamesController {
   constructor(private readonly gamesService: GamesService) {}
 
   @Post('create-games')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PUBLISHER)
   async createGame(
     @Body() createGameDto: CreateGameDto,
     @Req() req: { user: { id: string } },
@@ -32,7 +33,24 @@ export class GamesController {
     return await this.gamesService.createGame(createGameDto, req.user.id);
   }
 
+  @Get('public/findAllGames')
+  async findAllPublicGames(): Promise<{
+    message: string;
+    games: PublicGameReponse[];
+  }> {
+    return this.gamesService.findAllPublicGames();
+  }
+
+  @Get('public/findById/:id')
+  async findPublicGamesById(
+    id: string,
+  ): Promise<{ message: string; game: PublicGameReponse }> {
+    return this.gamesService.findPublicGameById(id);
+  }
+
   @Get('findAllGames')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PUBLISHER)
   async findAllGames(
     @Req() req: { user: { id: string } },
   ): Promise<{ message: string; games: GameResponse[] }> {
@@ -40,6 +58,8 @@ export class GamesController {
   }
 
   @Get('findById/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PUBLISHER)
   async findOneGame(
     @Param('id') id: string,
     @Req() req: { user: { id: string } },
@@ -48,6 +68,8 @@ export class GamesController {
   }
 
   @Patch('updateGame/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PUBLISHER)
   async updateGame(
     @Param('id') id: string,
     @Body() updateGameDto: PartialUpdateGameDto,
@@ -57,6 +79,8 @@ export class GamesController {
   }
 
   @Delete('deleteGame/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.PUBLISHER)
   async deleteGame(
     @Param('id') id: string,
     @Req() req: { user: { id: string } },
