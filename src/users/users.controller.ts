@@ -1,7 +1,7 @@
 
 import {Controller,Get,UseGuards,Req,Param,NotFoundException,Patch,Delete,} from '@nestjs/common';
 
-import {ApiTags,ApiOperation,ApiResponse,ApiBearerAuth,} from '@nestjs/swagger';
+import {ApiTags,ApiOperation,ApiResponse,ApiBearerAuth, ApiParam,} from '@nestjs/swagger';
 
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../auth/guards/roles.guard.js';
@@ -34,7 +34,7 @@ export class UsersController {
 
 
   
-
+  @ApiParam({ name: 'id', description: 'User ID' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
   @Get('admin-test')
@@ -69,7 +69,7 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @Get(':id')
   @ApiOperation({summary: 'Get user by ID',description: 'Allows administrators to retrieve a specific user account using its UUID. Password information is excluded.',})
- 
+  @ApiParam({name: 'id',description: 'User ID', type: String,})
   @ApiResponse({status: 200,description: 'User retrieved successfully.'})
   @ApiResponse({status: 401,description: 'Unauthorized - Missing or invalid JWT token.',})
   @ApiResponse({status: 403,description: 'Forbidden - Admin access required.'})
@@ -94,7 +94,7 @@ export class UsersController {
   @Roles(UserRole.ADMIN)
   @Patch(':id/status')
   @ApiOperation({summary: 'Toggle user account status',description: 'Allows administrators to toggle a user account between active and inactive. Each request reverses the current isActive value. No request body is required.',})
-  
+  @ApiParam({name: 'id',description: 'User ID',type: String,})
   @ApiResponse({status: 200,description: 'User account status updated successfully. Password information is excluded.'})
   @ApiResponse({status: 401,description: 'Unauthorized - Missing or invalid JWT token.'})
   @ApiResponse({status: 403,description: 'Forbidden - Admin access required.',})
