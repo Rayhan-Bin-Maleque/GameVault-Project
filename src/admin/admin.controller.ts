@@ -73,6 +73,7 @@ export class AdminController {
 
     @Get('staff/:id')
     @ApiOperation({summary: 'Get a staff member by ID',description:'Returns details of a specific Publisher or Support staff account.' })
+    @ApiParam({name: 'id',description: 'UUID of the staff member',type: String,})
     @ApiResponse({ status: 200,description: 'Staff member retrieved successfully.'})
     @ApiResponse({status: 400,description: 'Invalid UUID.'})
     @ApiResponse({status: 401,description: 'Unauthorized.'})
@@ -89,7 +90,7 @@ export class AdminController {
 
     @Patch('staff/:id')
     @ApiOperation({summary: 'Update staff details',description:'Allows an administrator to update an existing staff member name or email address.'})
-    @ApiBody({type: UpdateStaffDto,description: 'Staff information to update.'})
+    @ApiParam({name: 'id',description: 'UUID of the staff member',type: String,})
     @ApiResponse({status: 200, description: 'Staff updated successfully.'})
     @ApiResponse({status: 400,description: 'Invalid UUID or request body.' })
     @ApiResponse({status: 401,description: 'Unauthorized.',})
@@ -111,6 +112,7 @@ export class AdminController {
 
     @Patch('staff/:id/status')
     @ApiOperation({summary: 'Update staff account status',description:'Allows an administrator to activate or deactivate a staff account.'})
+      @ApiParam({name: 'id',description: 'UUID of the staff member',type: String,})
     @ApiResponse({status: 200,description: 'Staff status updated successfully.'})
     @ApiResponse({status: 400,description: 'Invalid UUID or request body.' })
     @ApiResponse({status: 401,description: 'Unauthorized.',})
