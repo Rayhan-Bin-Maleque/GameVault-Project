@@ -199,7 +199,7 @@ export class GamesService {
       );
 
       return {
-        message: 'Game retrieved successfully',
+        message: 'Games retrieved successfully',
         games: result,
       };
     } catch (error: unknown) {
