@@ -485,36 +485,4 @@ export class GamesService {
       );
     }
   }
-
-  // async deleteGame(
-  //   id: string,
-  //   publisherId: string,
-  // ): Promise<{ message: string }> {
-  //   try {
-  //     const game = await this.gamesRepository.findOne({
-  //       where: {
-  //         id,
-  //         publisher: { id: publisherId },
-  //       },
-  //     });
-
-  //     if (!game) {
-  //       throw new NotFoundException(`Game with id ${id} not found`);
-  //     }
-
-  //     await this.gamesRepository.remove(game);
-
-  //     return {
-  //       message: 'Game permanently deleted successfully',
-  //     };
-  //   } catch (error: unknown) {
-  //     if (error instanceof HttpException) {
-  //       throw error;
-  //     }
-
-  //     throw new InternalServerErrorException(
-  //       'An unexpected error occured while permanently deleting the game',
-  //     );
-  //   }
-  // }
 }
