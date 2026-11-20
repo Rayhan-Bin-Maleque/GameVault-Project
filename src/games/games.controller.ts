@@ -286,14 +286,4 @@ export class GamesController {
       updateStatus.isActive,
     );
   }
-
-  // @Delete('deleteGame/:id')
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(UserRole.PUBLISHER)
-  // async deleteGame(
-  //   @Param('id', new ParseUUIDPipe({ version: '4' })) id: string,
-  //   @Req() req: { user: { id: string } },
-  // ): Promise<{ message: string }> {
-  //   return this.gamesService.deleteGame(id, req.user.id);
-  // }
 }
