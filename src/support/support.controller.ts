@@ -52,17 +52,17 @@ export class SupportController {
     private readonly supportService: SupportService,
   ) {}
 
-  // =====================================
-  // CUSTOMER SUPPORT MANAGEMENT
-  // =====================================
+  
 
-  // 1. CREATE SUPPORT TICKET
+
 
   @Post('tickets')
   @Roles(UserRole.CUSTOMER)
+
   @ApiOperation({
     summary: 'Create a support ticket',
     description:
+
       'Allows an authenticated customer to submit a new support ticket.',
   })
   @ApiResponse({
@@ -70,10 +70,12 @@ export class SupportController {
     description: 'Support ticket created successfully.',
     type: SupportTicket,
   })
+
   @ApiResponse({
     status: 400,
     description: 'Invalid ticket information.',
   })
+
   @ApiResponse({
     status: 401,
     description: 'Unauthorized. Missing or invalid JWT token.',
@@ -82,17 +84,19 @@ export class SupportController {
     status: 403,
     description: 'Only active customers can create support tickets.',
   })
+
   createTicket(
     @Req() req: AuthenticatedRequest,
     @Body() createTicketDto: CreateTicketDto,
   ) {
+
     return this.supportService.createTicket(
       req.user.id,
       createTicketDto,
     );
   }
 
-  // 2. VIEW CUSTOMER TICKETS
+  
 
   @Get('my-tickets')
   @Roles(UserRole.CUSTOMER)
@@ -123,7 +127,7 @@ export class SupportController {
     );
   }
 
-  // 3. VIEW SINGLE CUSTOMER TICKET
+
 
   @Get('my-tickets/:id')
   @Roles(UserRole.CUSTOMER)
@@ -169,7 +173,7 @@ export class SupportController {
     );
   }
 
-  // 4. CUSTOMER SEND MESSAGE
+ 
 
   @Post('my-tickets/:id/messages')
   @Roles(UserRole.CUSTOMER)
@@ -218,7 +222,7 @@ export class SupportController {
     );
   }
 
-  // 5. VIEW CUSTOMER TICKET MESSAGES
+  
 
   @Get('my-tickets/:id/messages')
   @Roles(UserRole.CUSTOMER)
@@ -266,7 +270,7 @@ export class SupportController {
     );
   }
 
-  // 6. REQUEST TICKET REOPENING
+
 
   @Post('my-tickets/:id/reopen')
   @Roles(UserRole.CUSTOMER)
@@ -316,11 +320,7 @@ export class SupportController {
     );
   }
 
-  // =====================================
-  // SUPPORT AGENT MANAGEMENT
-  // =====================================
-
-  // 7. VIEW ASSIGNED TICKETS
+  
 
   @Get('agent/tickets')
   @Roles(UserRole.SUPPORT)
@@ -351,7 +351,7 @@ export class SupportController {
     );
   }
 
-  // 8. VIEW SINGLE ASSIGNED TICKET
+  
 
   @Get('agent/tickets/:id')
   @Roles(UserRole.SUPPORT)
@@ -397,7 +397,7 @@ export class SupportController {
     );
   }
 
-  // 9. VIEW AGENT TICKET MESSAGES
+  
 
   @Get('agent/tickets/:id/messages')
   @Roles(UserRole.SUPPORT)
@@ -495,7 +495,7 @@ export class SupportController {
     );
   }
 
-  // 11. UPDATE TICKET STATUS
+ 
 
   @Patch('agent/tickets/:id/status')
   @Roles(UserRole.SUPPORT)
@@ -544,7 +544,7 @@ export class SupportController {
     );
   }
 
-  // 12. UPDATE TICKET PRIORITY
+ 
 
   @Patch('agent/tickets/:id/priority')
   @Roles(UserRole.SUPPORT)
@@ -593,7 +593,6 @@ export class SupportController {
     );
   }
 
-  // 13. SUPPORT AGENT DASHBOARD
 
   @Get('agent/dashboard')
   @Roles(UserRole.SUPPORT)
