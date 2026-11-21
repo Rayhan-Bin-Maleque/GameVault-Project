@@ -15,6 +15,8 @@ import { User } from '../../users/entities/user.entity.js';
 import type { Relation } from 'typeorm';
 
 // Ticket Categories
+
+
 export enum TicketCategory {
   ACCOUNT = 'ACCOUNT',
   PAYMENT = 'PAYMENT',
@@ -26,6 +28,9 @@ export enum TicketCategory {
 }
 
 // Ticket Priorities
+
+
+
 export enum TicketPriority {
   LOW = 'LOW',
   MEDIUM = 'MEDIUM',
@@ -184,7 +189,7 @@ export class SupportTicket {
   })
   resolvedAt: Date | null;
 
-  // Customer reopening request timestamp
+  
 
   @ApiPropertyOptional({
     description: 'Timestamp when the customer submitted the existing reopening request.',
