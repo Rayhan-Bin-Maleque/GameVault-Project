@@ -94,7 +94,7 @@ export class AuthService {
         role: user.role,
     });
 
-    const { password, ...result } = staffUser;
+    const { password: _password, ...result } = staffUser;
 
     return result;
 }

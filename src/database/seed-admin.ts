@@ -82,4 +82,7 @@ async function seedAdmin() {
     }
 }
 
-seedAdmin();
+seedAdmin().catch((error) => {
+  console.error('Failed to seed admin:', error);
+  process.exitCode = 1;
+});
