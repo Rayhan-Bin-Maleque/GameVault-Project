@@ -10,14 +10,6 @@ import { Reflector } from '@nestjs/core';
 
 import { UserRole } from '../../users/entities/user.entity.js';
 
-interface AuthenticatedRequest {
-    user?: {
-        id?: string;
-        email?: string;
-        role?: UserRole;
-    };
-    url: string;
-}
 
 @Injectable()
 export class RolesGuard implements CanActivate {

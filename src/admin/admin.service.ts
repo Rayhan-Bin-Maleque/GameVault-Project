@@ -182,7 +182,7 @@ async updateStaff(
 
     const updatedStaff = await this.userRepository.save(staff);
 
-    const { password, ...result } = updatedStaff;
+    const { password: _password, ...result } = updatedStaff;
 
     return {
         message: 'Staff updated successfully',

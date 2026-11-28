@@ -1,10 +1,11 @@
 import { BadRequestException, ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from './entities/user.entity.js';
-import { Repository } from 'typeorm/repository/Repository.js';
+import { Repository } from 'typeorm';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { CreateStaffUserDto } from './dto/create-staff-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
+import { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 @Injectable()
 export class UsersService {
@@ -88,7 +89,7 @@ export class UsersService {
         }
         Object.assign(existingUser, user);
          const updatedUser = await this.userRepository.save(existingUser);
-         const { password, ...result } = updatedUser;
+         const { password: _password, ...result } = updatedUser;
          return result;
        
     } 
@@ -127,6 +128,57 @@ export class UsersService {
 
         return 'User deleted successfully';
         }
+
+
+
+
+  // Get the authenticated user's complete safe profile
+  async getProfile(id: string): Promise<User> {
+    const user = await this.findOne(id);
+
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    return user;
+  }
+
+  // Update the authenticated user's own profile
+  async updateProfile(
+    id: string,
+    profile: UpdateProfileDto,
+  ): Promise<User> {
+    const existingUser = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingUser) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (profile.fullName !== undefined) {
+      existingUser.fullName = profile.fullName.trim();
+    }
+
+    if (profile.email !== undefined) {
+      const email = profile.email.trim().toLowerCase();
+
+      const duplicateUser = await this.findByEmail(email);
+
+      if (duplicateUser && duplicateUser.id !== id) {
+        throw new ConflictException(
+          'Email address is already in use',
+        );
+      }
+
+      existingUser.email = email;
+    }
+
+    await this.userRepository.save(existingUser);
+
+    // Retrieve only safe profile fields
+    return this.getProfile(id);
+  }
 
 
 
